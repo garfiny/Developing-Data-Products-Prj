@@ -1,0 +1,104 @@
+---
+title       : Active Physician number Prediction
+subtitle    : inference against on corresponding city population
+author      : Shuo Zhao
+job         : Data Scientist
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+```{r echo=FALSE, warning=FALSE}
+library(ggplot2)
+
+readData <- function() {
+  dat <- read.csv(file = './APPENC02.txt' , sep = ',', header = FALSE)
+  names(dat)[c(5, 8, 9, 16, 17)] <- c('population', 'physicians', 'beds', 'income', 'region')
+  dat[, 'population'] <- dat[, 'population'] / 1000
+  # remove outliers
+  dat <- dat[-(1:2),]
+  dat
+}
+```
+
+## Shiny App Intro
+
+In any regular cities around the world, we need physicians. But how many physicians do we need in a particular city? The number of active physicians is expected to be related to total population, number of hospital beds, and total personal income etc. Here, I built a shiny application to apply linear regression model based on city's population to infer the number of active physicians for the city.
+
+The data set I am using provides selected county demographic information (CDI) for 440 of the most populous counties in the United States. Each line of the data set has an identification number with a county name and state abbreviation and provides information on 14 variables for a single county. The information generally pertains to the years 1990 and 1992. There are 17 variables in the original dataset, we only use population and physicians in the application.
+
+---
+
+## Deployed Application
+
+* You can find the deployed application from here: 
+ + https://garfiny.shinyapps.io/project_part1
+
+* The source code of the App & this slide shared in github:
+ + https://github.com/garfiny/Developing-Data-Products-Prj
+
+---
+
+## Feature 1: Exploratory Analysis
+```{r echo=FALSE, warning=FALSE, fig.width= 12}
+library(ggplot2)
+library(gridExtra)
+
+data = readData()
+n = dim(data)[1]
+p_mean <- mean(data$population)
+fit <- lm(data = data, physicians~population)
+
+boxplot <- ggplot(data = data, aes(x = factor(region),
+                                   y = population,
+                                   fill = region)) +
+  xlab("Regions") + ylab("Population (In Thousand)") +
+  geom_boxplot() + guides(fill = FALSE)
+
+histogram <- ggplot(data = data, aes(x = population)) +
+  geom_histogram(aes(y = ..density..), 
+                 binwidth = 50, 
+                 colour = "green", 
+                 fill = "white") +
+  geom_density(alpha = 0.2, fill = "white")
+  
+plot1 <- ggplot(data = data, aes(x = population, y = physicians)) +
+  geom_point() + geom_smooth(method=lm) + 
+  xlab("Population (In Thousand)") + ylab("Physicians") +
+  ggtitle("Scatter Plot") + theme_bw()
+
+plot2 <- ggplot(fit, aes(.fitted, .resid)) + geom_point() + 
+  stat_smooth(method="loess") + 
+  geom_hline(yintercept=0, col="red", linetype="dashed") +
+  xlab("Fitted values") + ylab("Residuals") +
+  ggtitle("Residual vs Fitted Plot") + theme_bw()
+grid.arrange(boxplot, histogram, plot1, plot2, ncol=2, nrow=2)
+```
+
+---
+
+## Feature 2 - Regression Analysis
+```{r }
+predictions <- ceiling(predict(fit, newdata = data.frame(population = c(1000, 2000, 3000))))
+```
+
+- Linear Regression Model: #Physicians =  `r round(fit$coefficients[1], 3)` + `r round(fit$coefficients[2], 3)` * #Population
+- Every `r round(fit$coefficients[2], 3)` thousand people population increase will generate 1 more physician.
+- Given populations `r c(1000, 2000, 3000)`, our predictions respectively are `r predictions`
+
+```{r }
+predictions <- predict(fit, data.frame(population = data$population))
+mse <- sum((data$physicians - predictions)^2) / (n - 2)
+yh <- predict(fit, newdata = data.frame(population = c(200, 2000)))
+s_yh <- sqrt(mse * (1/n + (c(200, 2000) - p_mean)^2/sum((data$population - p_mean)^2)))
+conf_interval1 <- yh[1] + c(-1, 1) * qt(0.995, n - 2) * s_yh[1]
+conf_interval2 <- yh[2] + c(-1, 1) * qt(0.995, n - 2) * s_yh[2]
+```
+
+- 99% Confidence Interval for 200K population: `r conf_interval1`
+- 99% Confidence Interval for 2000K population: `r conf_interval2`
+
+

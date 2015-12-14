@@ -4,7 +4,7 @@ library(shiny)
 
 shinyUI(
   pageWithSidebar(
-    headerPanel("Pyhsician Prediction by Population"),
+    headerPanel("Physician Prediction by Population"),
     
     sidebarPanel(
       h3("Inputs"),

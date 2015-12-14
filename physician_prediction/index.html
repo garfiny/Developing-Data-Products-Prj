@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Active Physician number Prediction</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Active Physician number Prediction">
+  <meta name="author" content="Shuo Zhao">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Active Physician number Prediction</h1>
+    <h2>inference against on corresponding city population</h2>
+    <p>Shuo Zhao<br/>Data Scientist</p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>Shiny App Intro</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>In any regular cities around the world, we need physicians. But how many physicians do we need in a particular city? The number of active physicians is expected to be related to total population, number of hospital beds, and total personal income etc. Here, I built a shiny application to apply linear regression model based on city&#39;s population to infer the number of active physicians for the city.</p>
+
+<p>The data set I am using provides selected county demographic information (CDI) for 440 of the most populous counties in the United States. Each line of the data set has an identification number with a county name and state abbreviation and provides information on 14 variables for a single county. The information generally pertains to the years 1990 and 1992. There are 17 variables in the original dataset, we only use population and physicians in the application.</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-2" style="background:;">
+  <hgroup>
+    <h2>Deployed Application</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li><p>You can find the deployed application from here: </p>
+
+<ul>
+<li><a href="https://garfiny.shinyapps.io/project_part1">https://garfiny.shinyapps.io/project_part1</a></li>
+</ul></li>
+<li><p>The source code of the App &amp; this slide shared in github:</p>
+
+<ul>
+<li><a href="https://github.com/garfiny/Developing-Data-Products-Prj">https://github.com/garfiny/Developing-Data-Products-Prj</a></li>
+</ul></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-3" style="background:;">
+  <hgroup>
+    <h2>Feature 1: Exploratory Analysis</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><img src="assets/fig/unnamed-chunk-2-1.png" alt="plot of chunk unnamed-chunk-2"> </p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-4" style="background:;">
+  <hgroup>
+    <h2>Feature 2 - Regression Analysis</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">predictions &lt;- ceiling(predict(fit, newdata = data.frame(population = c(1000, 2000, 3000))))
+</code></pre>
+
+<ul>
+<li>Linear Regression Model: #Physicians =  -131.361 + 2.853 * #Population</li>
+<li>Every 2.853 thousand people population increase will generate 1 more physician.</li>
+<li>Given populations 1000, 2000, 3000, our predictions respectively are 2722, 5574, 8427</li>
+</ul>
+
+<pre><code class="r">predictions &lt;- predict(fit, data.frame(population = data$population))
+mse &lt;- sum((data$physicians - predictions)^2) / (n - 2)
+yh &lt;- predict(fit, newdata = data.frame(population = c(200, 2000)))
+s_yh &lt;- sqrt(mse * (1/n + (c(200, 2000) - p_mean)^2/sum((data$population - p_mean)^2)))
+conf_interval1 &lt;- yh[1] + c(-1, 1) * qt(0.995, n - 2) * s_yh[1]
+conf_interval2 &lt;- yh[2] + c(-1, 1) * qt(0.995, n - 2) * s_yh[2]
+</code></pre>
+
+<ul>
+<li>99% Confidence Interval for 200K population: 357.5930351, 520.6885685</li>
+<li>99% Confidence Interval for 2000K population: 5245.2474047, 5902.0695887</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='Shiny App Intro'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='Deployed Application'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Feature 1: Exploratory Analysis'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='Feature 2 - Regression Analysis'>
+         4
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>
